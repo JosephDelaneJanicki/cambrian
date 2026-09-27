@@ -26,13 +26,15 @@ extends Node2D
 
 var has_jaws: bool = false
 var has_paired_fins: bool = false
+var has_improved_tail: bool = false
+var has_sensory_organs: bool = false
+var has_dermal_armor: bool = false
 
 
 # ============================================================
 # FACING STATE
 # ============================================================
 
-# Fish begins facing right.
 var facing_left: bool = false
 
 
@@ -91,9 +93,9 @@ func set_orientation(
 	# PITCH
 	# --------------------------------------------------------
 
-
 	if facing_left:
 		body_pivot.rotation = -pitch
+
 	else:
 		body_pivot.rotation = pitch
 
@@ -107,19 +109,32 @@ func is_facing_left() -> bool:
 
 
 # ============================================================
-# EVOLUTION
+# APPLY EVOLUTION
 # ============================================================
 
 func apply_evolution(
 	jaws: bool,
-	paired_fins: bool
+	paired_fins: bool,
+	improved_tail: bool = false,
+	sensory_organs: bool = false,
+	dermal_armor: bool = false
 ) -> void:
 
 	has_jaws = jaws
 	has_paired_fins = paired_fins
+	has_improved_tail = improved_tail
+	has_sensory_organs = sensory_organs
+	has_dermal_armor = dermal_armor
 
 	update_evolution_visuals()
 
 
+# ============================================================
+# EVOLUTION VISUALS
+# ============================================================
+
 func update_evolution_visuals() -> void:
+
+
+
 	pass

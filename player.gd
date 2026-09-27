@@ -10,15 +10,24 @@ signal evolution_points_changed(
 	banked_points: int
 )
 
+signal health_changed(
+	current_health: float,
+	maximum_health: float
+)
+
 signal mate_range_changed(
 	in_range: bool
 )
 
 signal reproduced
 
+signal died(
+	banked_points: int
+)
+
 
 # ============================================================
-# MOVEMENT
+# BASE MOVEMENT
 # ============================================================
 
 @export var max_speed: float = 250.0
@@ -29,11 +38,24 @@ signal reproduced
 
 
 # ============================================================
+# HEALTH
+# ============================================================
+
+@export var max_health: float = 100.0
+
+var health: float = 100.0
+var is_dead: bool = false
+
+
+# ============================================================
 # EVOLUTION TRAITS
 # ============================================================
 
-var has_paired_fins: bool = false
 var has_jaws: bool = false
+var has_paired_fins: bool = false
+var has_improved_tail: bool = false
+var has_sensory_organs: bool = false
+var has_dermal_armor: bool = false
 
 
 # ============================================================
@@ -76,12 +98,31 @@ var facing_direction: Vector2 = Vector2.RIGHT
 
 func _ready() -> void:
 
-	fish_body.apply_evolution(
-		has_jaws,
-		has_paired_fins
-	)
+	health = max_health
+
+	apply_evolution_traits()
 
 	update_orientation()
+
+	health_changed.emit(
+		health,
+		max_health
+	)
+
+
+# ============================================================
+# APPLY EVOLUTION
+# ============================================================
+
+func apply_evolution_traits() -> void:
+
+	fish_body.apply_evolution(
+		has_jaws,
+		has_paired_fins,
+		has_improved_tail,
+		has_sensory_organs,
+		has_dermal_armor
+	)
 
 
 # ============================================================
@@ -89,6 +130,10 @@ func _ready() -> void:
 # ============================================================
 
 func _physics_process(delta: float) -> void:
+
+	if is_dead:
+		return
+
 
 	# --------------------------------------------------------
 	# DIRECTIONAL INPUT
@@ -121,12 +166,12 @@ func _physics_process(delta: float) -> void:
 
 		velocity += (
 			facing_direction
-			* propulsion
+			* get_current_propulsion()
 			* delta
 		)
 
 		velocity = velocity.limit_length(
-			max_speed
+			get_current_max_speed()
 		)
 
 
@@ -147,6 +192,7 @@ func _physics_process(delta: float) -> void:
 	# --------------------------------------------------------
 
 	if Input.is_action_just_pressed("reproduce"):
+
 		attempt_reproduction()
 
 
@@ -202,8 +248,9 @@ func update_orientation() -> void:
 	# --------------------------------------------------------
 	# FEEDING AREA
 	# --------------------------------------------------------
-
-	# Keep this exactly as our known-good transform setup.
+	#
+	# KNOWN-GOOD TRANSFORM SETUP.
+	# --------------------------------------------------------
 
 	if facing_left:
 
@@ -229,10 +276,162 @@ func update_orientation() -> void:
 
 
 # ============================================================
+# HEALTH / DAMAGE
+# ============================================================
+
+func take_damage(amount: float) -> void:
+
+	if is_dead:
+		return
+
+	var final_damage: float = (
+		amount
+		* get_damage_modifier()
+	)
+
+	health = max(
+		health - final_damage,
+		0.0
+	)
+
+	health_changed.emit(
+		health,
+		max_health
+	)
+
+	print(
+		"Player took ",
+		final_damage,
+		" damage. Health: ",
+		health,
+		"/",
+		max_health
+	)
+
+
+	if health <= 0.0:
+		die()
+
+
+func heal(amount: float) -> void:
+
+	if is_dead:
+		return
+
+	health = min(
+		health + amount,
+		max_health
+	)
+
+	health_changed.emit(
+		health,
+		max_health
+	)
+
+
+# ============================================================
+# DEATH
+# ============================================================
+
+func die() -> void:
+
+	if is_dead:
+		return
+
+	is_dead = true
+	velocity = Vector2.ZERO
+
+
+	# Disable physical interaction while dead.
+	body_collision.set_deferred(
+		"disabled",
+		true
+	)
+
+	feeding_area.set_deferred(
+		"monitoring",
+		false
+	)
+
+
+	print(
+		"Player died. ",
+		banked_evolution_points,
+		" banked EP survived."
+	)
+
+	died.emit(
+		banked_evolution_points
+	)
+
+
+	# IMPORTANT:
+	#
+	# Do NOT queue_free() the Player here.
+	#
+	# The upcoming evolution/death system will catch this
+	# signal, open the evolution screen, spend BANKED EP,
+	# and then create the next generation.
+
+
+# ============================================================
+# EVOLUTION EFFECTS
+# ============================================================
+
+func get_current_max_speed() -> float:
+
+	if has_improved_tail:
+		return max_speed * 1.35
+
+	return max_speed
+
+
+func get_current_propulsion() -> float:
+
+	if has_improved_tail:
+		return propulsion * 1.30
+
+	return propulsion
+
+
+func get_turning_modifier() -> float:
+
+	if has_paired_fins:
+		return 1.35
+
+	return 1.0
+
+
+func get_sensory_modifier() -> float:
+
+	if has_sensory_organs:
+		return 1.50
+
+	return 1.0
+
+
+func get_damage_modifier() -> float:
+
+	if has_dermal_armor:
+		return 0.65
+
+	return 1.0
+
+
+func can_bite() -> bool:
+
+	return has_jaws
+
+
+# ============================================================
 # FEEDING
 # ============================================================
 
 func _on_feeding_area_area_entered(area: Area2D) -> void:
+
+	if is_dead:
+		return
+
 
 	if area.has_method("consume"):
 
@@ -248,6 +447,9 @@ func _on_feeding_area_area_entered(area: Area2D) -> void:
 # ============================================================
 
 func add_evolution_points(amount: int) -> void:
+
+	if is_dead:
+		return
 
 	evolution_points += amount
 
@@ -270,6 +472,9 @@ func add_evolution_points(amount: int) -> void:
 
 func set_nearby_mate(mate: Area2D) -> void:
 
+	if is_dead:
+		return
+
 	nearby_mate = mate
 
 	mate_range_changed.emit(true)
@@ -277,8 +482,6 @@ func set_nearby_mate(mate: Area2D) -> void:
 
 func clear_nearby_mate(mate: Area2D) -> void:
 
-	# Don't clear a different mate if multiple mates
-	# eventually overlap their detection ranges.
 	if nearby_mate != mate:
 		return
 
@@ -293,20 +496,34 @@ func clear_nearby_mate(mate: Area2D) -> void:
 
 func attempt_reproduction() -> void:
 
-	if nearby_mate == null:
-		print("No compatible mate nearby.")
+	if is_dead:
 		return
 
-	if not is_instance_valid(nearby_mate):
-		nearby_mate = null
-		mate_range_changed.emit(false)
+
+	if nearby_mate == null:
+
+		print("No compatible mate nearby.")
+
 		return
+
+
+	if not is_instance_valid(nearby_mate):
+
+		nearby_mate = null
+
+		mate_range_changed.emit(false)
+
+		return
+
 
 	if not nearby_mate.has_method("can_reproduce_with"):
 		return
 
+
 	if not nearby_mate.can_reproduce_with(self):
+
 		print("Mate is currently unavailable.")
+
 		return
 
 
@@ -318,10 +535,11 @@ func attempt_reproduction() -> void:
 
 
 	# --------------------------------------------------------
-	# TELL MATE REPRODUCTION OCCURRED
+	# TELL MATE
 	# --------------------------------------------------------
 
 	if nearby_mate.has_method("on_reproduction"):
+
 		nearby_mate.on_reproduction(self)
 
 
@@ -335,6 +553,7 @@ func attempt_reproduction() -> void:
 	)
 
 	reproduced.emit()
+
 
 	print(
 		"Reproduction successful! ",

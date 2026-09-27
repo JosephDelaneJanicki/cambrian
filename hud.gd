@@ -22,6 +22,10 @@ var player: CharacterBody2D = null
 
 var current_points: int = 0
 var banked_points: int = 0
+
+var current_health: float = 0.0
+var maximum_health: float = 0.0
+
 var mate_nearby: bool = false
 
 
@@ -31,7 +35,6 @@ var mate_nearby: bool = false
 
 func _ready() -> void:
 
-	# Force UI into viewport space.
 	ui.position = Vector2.ZERO
 	ui.size = get_viewport().get_visible_rect().size
 
@@ -42,7 +45,7 @@ func _ready() -> void:
 
 	evolution_label.size = Vector2(
 		500.0,
-		160.0
+		200.0
 	)
 
 
@@ -54,6 +57,7 @@ func _ready() -> void:
 		"player"
 	) as CharacterBody2D
 
+
 	if player == null:
 
 		push_warning(
@@ -64,11 +68,15 @@ func _ready() -> void:
 
 
 	# --------------------------------------------------------
-	# CONNECT PLAYER SIGNALS
+	# CONNECT SIGNALS
 	# --------------------------------------------------------
 
 	player.evolution_points_changed.connect(
 		_on_evolution_points_changed
+	)
+
+	player.health_changed.connect(
+		_on_health_changed
 	)
 
 	player.mate_range_changed.connect(
@@ -77,11 +85,14 @@ func _ready() -> void:
 
 
 	# --------------------------------------------------------
-	# INITIAL DISPLAY
+	# INITIAL STATE
 	# --------------------------------------------------------
 
 	current_points = player.evolution_points
 	banked_points = player.banked_evolution_points
+
+	current_health = player.health
+	maximum_health = player.max_health
 
 	update_hud()
 
@@ -97,6 +108,21 @@ func _on_evolution_points_changed(
 
 	current_points = new_current_points
 	banked_points = new_banked_points
+
+	update_hud()
+
+
+# ============================================================
+# HEALTH UPDATE
+# ============================================================
+
+func _on_health_changed(
+	new_health: float,
+	new_max_health: float
+) -> void:
+
+	current_health = new_health
+	maximum_health = new_max_health
 
 	update_hud()
 
@@ -121,7 +147,11 @@ func _on_mate_range_changed(
 func update_hud() -> void:
 
 	var hud_text: String = (
-		"Evolution Points: "
+		"Health: "
+		+ str(roundi(current_health))
+		+ " / "
+		+ str(roundi(maximum_health))
+		+ "\nEvolution Points: "
 		+ str(current_points)
 		+ "\nBanked: "
 		+ str(banked_points)
@@ -132,7 +162,7 @@ func update_hud() -> void:
 
 		hud_text += (
 			"\n\nCompatible Mate Nearby"
-			+ "\nPress R to Reproduce"
+			+ "\n[E] / [Y] Reproduce"
 		)
 
 

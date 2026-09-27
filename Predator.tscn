@@ -1,0 +1,40 @@
+[gd_scene format=3 uid="uid://dyvqh488tgbly"]
+
+[ext_resource type="Script" uid="uid://6t5uxp6pfmcg" path="res://predator.gd" id="1_hniil"]
+[ext_resource type="Texture2D" uid="uid://dd4pqkc0oy4hm" path="res://icon.svg" id="1_v1m0w"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_hniil"]
+radius = 12.599999
+height = 26.8
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_84p6c"]
+radius = 37.8
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_exsps"]
+radius = 16.8
+
+[node name="Predator" type="CharacterBody2D" unique_id=307648078]
+script = ExtResource("1_hniil")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1568882824]
+scale = Vector2(2, 2)
+texture = ExtResource("1_v1m0w")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=355035787]
+scale = Vector2(10, 10)
+shape = SubResource("CapsuleShape2D_hniil")
+
+[node name="DetectionArea" type="Area2D" parent="." unique_id=86220904]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DetectionArea" unique_id=1894069973]
+scale = Vector2(10, 10)
+shape = SubResource("CircleShape2D_84p6c")
+
+[node name="AttackArea" type="Area2D" parent="." unique_id=663611478]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AttackArea" unique_id=960192399]
+scale = Vector2(10, 10)
+shape = SubResource("CircleShape2D_exsps")
+
+[connection signal="body_entered" from="DetectionArea" to="." method="_on_detection_area_body_entered"]
+[connection signal="body_exited" from="DetectionArea" to="." method="_on_detection_area_body_exited"]
