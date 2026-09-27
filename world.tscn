@@ -80,6 +80,78 @@ text = "TEST HUD
 Evolution Points: 0
 Banked: 0"
 
+[node name="EvolutionScreen" type="Control" parent="HUD" unique_id=420258674]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="Panel" parent="HUD/EvolutionScreen" unique_id=707300803]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -250.0
+offset_top = -250.0
+offset_right = 250.0
+offset_bottom = 250.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="HUD/EvolutionScreen/Panel" unique_id=1485050095]
+layout_mode = 0
+offset_left = 2.0
+offset_top = 4.5
+offset_right = 497.0
+offset_bottom = 495.5
+theme_override_constants/separation = 12
+
+[node name="TitleLabel" type="Label" parent="HUD/EvolutionScreen/Panel/VBoxContainer" unique_id=1630099139]
+layout_mode = 2
+text = "Generation End"
+horizontal_alignment = 1
+
+[node name="GenerationLabel" type="Label" parent="HUD/EvolutionScreen/Panel/VBoxContainer" unique_id=235978719]
+layout_mode = 2
+horizontal_alignment = 1
+
+[node name="BankedLabel" type="Label" parent="HUD/EvolutionScreen/Panel/VBoxContainer" unique_id=2056063180]
+layout_mode = 2
+horizontal_alignment = 1
+
+[node name="ArmorButton" type="Button" parent="HUD/EvolutionScreen/Panel/VBoxContainer" unique_id=1695733050]
+layout_mode = 2
+
+[node name="SensoryButton" type="Button" parent="HUD/EvolutionScreen/Panel/VBoxContainer" unique_id=703630049]
+layout_mode = 2
+
+[node name="TailButton" type="Button" parent="HUD/EvolutionScreen/Panel/VBoxContainer" unique_id=672428649]
+layout_mode = 2
+
+[node name="FinsButton" type="Button" parent="HUD/EvolutionScreen/Panel/VBoxContainer" unique_id=943625750]
+layout_mode = 2
+
+[node name="JawsButton" type="Button" parent="HUD/EvolutionScreen/Panel/VBoxContainer" unique_id=602260713]
+layout_mode = 2
+
+[node name="NextGenerationButton" type="Button" parent="HUD/EvolutionScreen/Panel/VBoxContainer" unique_id=212649861]
+layout_mode = 2
+text = "Begin Next Generation"
+
+[node name="ColorRect" type="ColorRect" parent="HUD/EvolutionScreen" unique_id=1723460779]
+z_index = -18
+layout_mode = 0
+offset_left = 325.0
+offset_top = 74.0
+offset_right = 824.0
+offset_bottom = 570.0
+mouse_filter = 2
+
 [node name="Mate" parent="." unique_id=1200193917 instance=ExtResource("5_036b0")]
 position = Vector2(346, -185)
 

@@ -5,11 +5,8 @@ extends Node
 # LINEAGE MANAGER
 # ============================================================
 #
-# Persistent state belonging to the lineage rather than to
-# any individual organism.
-#
-# Individual Player instances can die and be replaced.
-# This node survives those deaths.
+# Persistent state belonging to the lineage rather than any
+# individual organism.
 # ============================================================
 
 
@@ -24,8 +21,18 @@ var generation: int = 1
 # EVOLUTION POINTS
 # ============================================================
 
-# EP successfully preserved through reproduction.
 var banked_evolution_points: int = 0
+
+
+# ============================================================
+# EVOLUTION COSTS
+# ============================================================
+
+const JAWS_COST: int = 5
+const PAIRED_FINS_COST: int = 5
+const IMPROVED_TAIL_COST: int = 8
+const SENSORY_ORGANS_COST: int = 8
+const DERMAL_ARMOR_COST: int = 10
 
 
 # ============================================================
@@ -62,12 +69,94 @@ func bank_progress(
 	has_checkpoint = true
 
 	print(
-		"Lineage checkpoint updated. ",
-		"Banked EP: ",
+		"Lineage checkpoint updated. Banked EP: ",
 		banked_evolution_points,
 		" | Position: ",
 		checkpoint_position
 	)
+
+
+# ============================================================
+# SPEND EP
+# ============================================================
+
+func can_afford(cost: int) -> bool:
+
+	return banked_evolution_points >= cost
+
+
+func spend_points(cost: int) -> bool:
+
+	if not can_afford(cost):
+		return false
+
+	banked_evolution_points -= cost
+
+	return true
+
+
+# ============================================================
+# PURCHASE EVOLUTIONS
+# ============================================================
+
+func purchase_jaws() -> bool:
+
+	if has_jaws:
+		return false
+
+	if not spend_points(JAWS_COST):
+		return false
+
+	has_jaws = true
+	return true
+
+
+func purchase_paired_fins() -> bool:
+
+	if has_paired_fins:
+		return false
+
+	if not spend_points(PAIRED_FINS_COST):
+		return false
+
+	has_paired_fins = true
+	return true
+
+
+func purchase_improved_tail() -> bool:
+
+	if has_improved_tail:
+		return false
+
+	if not spend_points(IMPROVED_TAIL_COST):
+		return false
+
+	has_improved_tail = true
+	return true
+
+
+func purchase_sensory_organs() -> bool:
+
+	if has_sensory_organs:
+		return false
+
+	if not spend_points(SENSORY_ORGANS_COST):
+		return false
+
+	has_sensory_organs = true
+	return true
+
+
+func purchase_dermal_armor() -> bool:
+
+	if has_dermal_armor:
+		return false
+
+	if not spend_points(DERMAL_ARMOR_COST):
+		return false
+
+	has_dermal_armor = true
+	return true
 
 
 # ============================================================
@@ -85,7 +174,7 @@ func begin_next_generation() -> void:
 
 
 # ============================================================
-# EVOLUTION QUERIES
+# EVOLUTION STATE
 # ============================================================
 
 func get_evolution_state() -> Dictionary:
@@ -97,50 +186,3 @@ func get_evolution_state() -> Dictionary:
 		"sensory_organs": has_sensory_organs,
 		"dermal_armor": has_dermal_armor
 	}
-
-
-# ============================================================
-# DEBUG
-# ============================================================
-
-func print_lineage_state() -> void:
-
-	print(
-		"Generation: ",
-		generation
-	)
-
-	print(
-		"Banked EP: ",
-		banked_evolution_points
-	)
-
-	print(
-		"Checkpoint: ",
-		checkpoint_position
-	)
-
-	print(
-		"Jaws: ",
-		has_jaws
-	)
-
-	print(
-		"Paired Fins: ",
-		has_paired_fins
-	)
-
-	print(
-		"Improved Tail: ",
-		has_improved_tail
-	)
-
-	print(
-		"Sensory Organs: ",
-		has_sensory_organs
-	)
-
-	print(
-		"Dermal Armor: ",
-		has_dermal_armor
-	)

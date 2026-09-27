@@ -48,22 +48,10 @@ var is_dead: bool = false
 
 
 # ============================================================
-# EVOLUTION TRAITS
-# ============================================================
-
-var has_jaws: bool = false
-var has_paired_fins: bool = false
-var has_improved_tail: bool = false
-var has_sensory_organs: bool = false
-var has_dermal_armor: bool = false
-
-
-# ============================================================
-# EVOLUTION POINTS
+# CURRENT-LIFE EVOLUTION POINTS
 # ============================================================
 
 var evolution_points: int = 0
-var banked_evolution_points: int = 0
 
 
 # ============================================================
@@ -100,7 +88,7 @@ func _ready() -> void:
 
 	health = max_health
 
-	apply_evolution_traits()
+	apply_lineage_state()
 
 	update_orientation()
 
@@ -109,19 +97,24 @@ func _ready() -> void:
 		max_health
 	)
 
+	evolution_points_changed.emit(
+		evolution_points,
+		LineageManager.banked_evolution_points
+	)
+
 
 # ============================================================
-# APPLY EVOLUTION
+# APPLY LINEAGE STATE
 # ============================================================
 
-func apply_evolution_traits() -> void:
+func apply_lineage_state() -> void:
 
 	fish_body.apply_evolution(
-		has_jaws,
-		has_paired_fins,
-		has_improved_tail,
-		has_sensory_organs,
-		has_dermal_armor
+		LineageManager.has_jaws,
+		LineageManager.has_paired_fins,
+		LineageManager.has_improved_tail,
+		LineageManager.has_sensory_organs,
+		LineageManager.has_dermal_armor
 	)
 
 
@@ -134,10 +127,6 @@ func _physics_process(delta: float) -> void:
 	if is_dead:
 		return
 
-
-	# --------------------------------------------------------
-	# DIRECTIONAL INPUT
-	# --------------------------------------------------------
 
 	var input_direction: Vector2 = Input.get_vector(
 		"ui_left",
@@ -188,17 +177,13 @@ func _physics_process(delta: float) -> void:
 
 
 	# --------------------------------------------------------
-	# REPRODUCTION INPUT
+	# REPRODUCTION
 	# --------------------------------------------------------
 
 	if Input.is_action_just_pressed("reproduce"):
 
 		attempt_reproduction()
 
-
-	# --------------------------------------------------------
-	# APPLY MOVEMENT
-	# --------------------------------------------------------
 
 	move_and_slide()
 
@@ -213,10 +198,6 @@ func update_orientation() -> void:
 		return
 
 
-	# --------------------------------------------------------
-	# VISUAL BODY
-	# --------------------------------------------------------
-
 	fish_body.set_orientation(
 		facing_direction,
 		max_pitch_degrees
@@ -224,10 +205,6 @@ func update_orientation() -> void:
 
 	var facing_left: bool = fish_body.is_facing_left()
 
-
-	# --------------------------------------------------------
-	# CALCULATE PITCH
-	# --------------------------------------------------------
 
 	var pitch: float = atan2(
 		facing_direction.y,
@@ -246,10 +223,7 @@ func update_orientation() -> void:
 
 
 	# --------------------------------------------------------
-	# FEEDING AREA
-	# --------------------------------------------------------
-	#
-	# KNOWN-GOOD TRANSFORM SETUP.
+	# KNOWN-GOOD FEEDING TRANSFORM
 	# --------------------------------------------------------
 
 	if facing_left:
@@ -268,10 +242,6 @@ func update_orientation() -> void:
 		feeding_pivot.rotation = pitch
 
 
-	# --------------------------------------------------------
-	# BODY COLLISION
-	# --------------------------------------------------------
-
 	body_collision.rotation = pitch
 
 
@@ -284,20 +254,24 @@ func take_damage(amount: float) -> void:
 	if is_dead:
 		return
 
+
 	var final_damage: float = (
 		amount
 		* get_damage_modifier()
 	)
+
 
 	health = max(
 		health - final_damage,
 		0.0
 	)
 
+
 	health_changed.emit(
 		health,
 		max_health
 	)
+
 
 	print(
 		"Player took ",
@@ -318,10 +292,12 @@ func heal(amount: float) -> void:
 	if is_dead:
 		return
 
+
 	health = min(
 		health + amount,
 		max_health
 	)
+
 
 	health_changed.emit(
 		health,
@@ -338,11 +314,11 @@ func die() -> void:
 	if is_dead:
 		return
 
+
 	is_dead = true
 	velocity = Vector2.ZERO
 
 
-	# Disable physical interaction while dead.
 	body_collision.set_deferred(
 		"disabled",
 		true
@@ -355,23 +331,25 @@ func die() -> void:
 
 
 	print(
-		"Player died. ",
-		banked_evolution_points,
-		" banked EP survived."
+		"Generation ",
+		LineageManager.generation,
+		" died."
 	)
+
+	print(
+		"Current-life EP lost: ",
+		evolution_points
+	)
+
+	print(
+		"Banked lineage EP preserved: ",
+		LineageManager.banked_evolution_points
+	)
+
 
 	died.emit(
-		banked_evolution_points
+		LineageManager.banked_evolution_points
 	)
-
-
-	# IMPORTANT:
-	#
-	# Do NOT queue_free() the Player here.
-	#
-	# The upcoming evolution/death system will catch this
-	# signal, open the evolution screen, spend BANKED EP,
-	# and then create the next generation.
 
 
 # ============================================================
@@ -380,7 +358,7 @@ func die() -> void:
 
 func get_current_max_speed() -> float:
 
-	if has_improved_tail:
+	if LineageManager.has_improved_tail:
 		return max_speed * 1.35
 
 	return max_speed
@@ -388,7 +366,7 @@ func get_current_max_speed() -> float:
 
 func get_current_propulsion() -> float:
 
-	if has_improved_tail:
+	if LineageManager.has_improved_tail:
 		return propulsion * 1.30
 
 	return propulsion
@@ -396,7 +374,7 @@ func get_current_propulsion() -> float:
 
 func get_turning_modifier() -> float:
 
-	if has_paired_fins:
+	if LineageManager.has_paired_fins:
 		return 1.35
 
 	return 1.0
@@ -404,7 +382,7 @@ func get_turning_modifier() -> float:
 
 func get_sensory_modifier() -> float:
 
-	if has_sensory_organs:
+	if LineageManager.has_sensory_organs:
 		return 1.50
 
 	return 1.0
@@ -412,7 +390,7 @@ func get_sensory_modifier() -> float:
 
 func get_damage_modifier() -> float:
 
-	if has_dermal_armor:
+	if LineageManager.has_dermal_armor:
 		return 0.65
 
 	return 1.0
@@ -420,14 +398,16 @@ func get_damage_modifier() -> float:
 
 func can_bite() -> bool:
 
-	return has_jaws
+	return LineageManager.has_jaws
 
 
 # ============================================================
 # FEEDING
 # ============================================================
 
-func _on_feeding_area_area_entered(area: Area2D) -> void:
+func _on_feeding_area_area_entered(
+	area: Area2D
+) -> void:
 
 	if is_dead:
 		return
@@ -451,18 +431,21 @@ func add_evolution_points(amount: int) -> void:
 	if is_dead:
 		return
 
+
 	evolution_points += amount
+
 
 	evolution_points_changed.emit(
 		evolution_points,
-		banked_evolution_points
+		LineageManager.banked_evolution_points
 	)
+
 
 	print(
 		"Evolution Points: ",
 		evolution_points,
 		" | Banked: ",
-		banked_evolution_points
+		LineageManager.banked_evolution_points
 	)
 
 
@@ -475,6 +458,7 @@ func set_nearby_mate(mate: Area2D) -> void:
 	if is_dead:
 		return
 
+
 	nearby_mate = mate
 
 	mate_range_changed.emit(true)
@@ -484,6 +468,7 @@ func clear_nearby_mate(mate: Area2D) -> void:
 
 	if nearby_mate != mate:
 		return
+
 
 	nearby_mate = null
 
@@ -502,7 +487,9 @@ func attempt_reproduction() -> void:
 
 	if nearby_mate == null:
 
-		print("No compatible mate nearby.")
+		print(
+			"No compatible mate nearby."
+		)
 
 		return
 
@@ -516,31 +503,43 @@ func attempt_reproduction() -> void:
 		return
 
 
-	if not nearby_mate.has_method("can_reproduce_with"):
+	if not nearby_mate.has_method(
+		"can_reproduce_with"
+	):
+
 		return
 
 
 	if not nearby_mate.can_reproduce_with(self):
 
-		print("Mate is currently unavailable.")
+		print(
+			"Mate is currently unavailable."
+		)
 
 		return
 
 
 	# --------------------------------------------------------
-	# BANK CURRENT PROGRESS
+	# SAVE LINEAGE CHECKPOINT
 	# --------------------------------------------------------
 
-	banked_evolution_points = evolution_points
+	LineageManager.bank_progress(
+		evolution_points,
+		global_position
+	)
 
 
 	# --------------------------------------------------------
-	# TELL MATE
+	# CONSUME MATE
 	# --------------------------------------------------------
 
-	if nearby_mate.has_method("on_reproduction"):
+	if nearby_mate.has_method(
+		"on_reproduction"
+	):
 
-		nearby_mate.on_reproduction(self)
+		nearby_mate.on_reproduction(
+			self
+		)
 
 
 	# --------------------------------------------------------
@@ -549,7 +548,7 @@ func attempt_reproduction() -> void:
 
 	evolution_points_changed.emit(
 		evolution_points,
-		banked_evolution_points
+		LineageManager.banked_evolution_points
 	)
 
 	reproduced.emit()
@@ -558,5 +557,5 @@ func attempt_reproduction() -> void:
 	print(
 		"Reproduction successful! ",
 		"Banked Evolution Points: ",
-		banked_evolution_points
+		LineageManager.banked_evolution_points
 	)
