@@ -1,0 +1,36 @@
+[gd_scene format=3 uid="uid://xc7arkx237vh"]
+
+[ext_resource type="Script" uid="uid://d3peh3kps572r" path="res://player.gd" id="1_kpjcp"]
+[ext_resource type="PackedScene" uid="uid://cxf8rhj8cps5r" path="res://FishBody.tscn" id="3_kne1u"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_6eotj"]
+radius = 60.4
+height = 124.0
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_8bfxb"]
+radius = 6.0
+height = 52.0
+
+[node name="Player" type="CharacterBody2D" unique_id=505097129 groups=["player"]]
+motion_mode = 1
+script = ExtResource("1_kpjcp")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=360516057]
+z_index = 1
+shape = SubResource("CapsuleShape2D_6eotj")
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1070400777]
+position_smoothing_enabled = true
+position_smoothing_speed = 8.0
+
+[node name="FishBody" parent="." unique_id=47505641 instance=ExtResource("3_kne1u")]
+
+[node name="FeedingPivot" type="Node2D" parent="." unique_id=913832407]
+
+[node name="FeedingArea" type="Area2D" parent="FeedingPivot" unique_id=706250139]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="FeedingPivot/FeedingArea" unique_id=178054459]
+position = Vector2(59, 0)
+shape = SubResource("CapsuleShape2D_8bfxb")
+
+[connection signal="area_entered" from="FeedingPivot/FeedingArea" to="." method="_on_feeding_area_area_entered"]

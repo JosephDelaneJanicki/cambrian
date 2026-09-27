@@ -1,0 +1,12 @@
+[gd_scene format=3 uid="uid://cxf8rhj8cps5r"]
+
+[ext_resource type="Texture2D" uid="uid://dd4pqkc0oy4hm" path="res://icon.svg" id="1_dke7l"]
+[ext_resource type="Script" uid="uid://qjovkwa68pqm" path="res://fish_body.gd" id="1_ll6un"]
+
+[node name="FishBody" type="Node2D" unique_id=47505641]
+script = ExtResource("1_ll6un")
+
+[node name="BodyPivot" type="Node2D" parent="." unique_id=953614164]
+
+[node name="Sprite2D" type="Sprite2D" parent="BodyPivot" unique_id=695862655]
+texture = ExtResource("1_dke7l")

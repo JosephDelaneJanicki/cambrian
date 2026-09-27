@@ -1,0 +1,29 @@
+[gd_scene format=3 uid="uid://d14i85fn0pamc"]
+
+[ext_resource type="Script" uid="uid://bxpom5hcbjkql" path="res://mate.gd" id="1_r6l1j"]
+[ext_resource type="PackedScene" uid="uid://cxf8rhj8cps5r" path="res://FishBody.tscn" id="1_s4v7c"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_exsps"]
+radius = 12.599999
+height = 25.199999
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_r6l1j"]
+radius = 13.393281
+
+[node name="Mate" type="Area2D" unique_id=1200193917]
+script = ExtResource("1_r6l1j")
+
+[node name="FishBody" parent="." unique_id=47505641 instance=ExtResource("1_s4v7c")]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=129327993]
+scale = Vector2(5, 5)
+shape = SubResource("CapsuleShape2D_exsps")
+
+[node name="ReproductionArea" type="Area2D" parent="." unique_id=217156592]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ReproductionArea" unique_id=411308733]
+scale = Vector2(10, 10)
+shape = SubResource("CircleShape2D_r6l1j")
+
+[connection signal="body_entered" from="ReproductionArea" to="." method="_on_reproduction_area_body_entered"]
+[connection signal="body_exited" from="ReproductionArea" to="." method="_on_reproduction_area_body_exited"]

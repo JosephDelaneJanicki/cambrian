@@ -1,0 +1,18 @@
+[gd_scene format=3 uid="uid://d11txsy6v00d5"]
+
+[ext_resource type="Script" uid="uid://b72jcmc377pvt" path="res://plankton.gd" id="1_rohqe"]
+[ext_resource type="Texture2D" uid="uid://dd4pqkc0oy4hm" path="res://icon.svg" id="2_h2fwh"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_kpjcp"]
+radius = 7.0
+
+[node name="Plankton" type="Area2D" unique_id=375682366]
+script = ExtResource("1_rohqe")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1768384000]
+position = Vector2(1.1920929e-07, -1.1920929e-07)
+scale = Vector2(0.1, 0.1)
+texture = ExtResource("2_h2fwh")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=2008944142]
+shape = SubResource("CircleShape2D_kpjcp")

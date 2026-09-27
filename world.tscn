@@ -1,0 +1,83 @@
+[gd_scene format=3 uid="uid://cn6vmgufdjdll"]
+
+[ext_resource type="PackedScene" uid="uid://xc7arkx237vh" path="res://Player.tscn" id="1_f3sb7"]
+[ext_resource type="PackedScene" uid="uid://d11txsy6v00d5" path="res://Plankton.tscn" id="2_fj7yv"]
+[ext_resource type="Script" uid="uid://kr2vvhtgiaj0" path="res://plankton_spawner.gd" id="3_tlwt5"]
+[ext_resource type="Script" uid="uid://drythkmc1uxlm" path="res://hud.gd" id="4_aqk2v"]
+[ext_resource type="PackedScene" uid="uid://d14i85fn0pamc" path="res://Mate.tscn" id="5_036b0"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_exsps"]
+size = Vector2(121.149994, 1.0800004)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_8bfxb"]
+size = Vector2(121.509995, 0.89000034)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_asjer"]
+size = Vector2(1.3099976, 41.489998)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_6eotj"]
+size = Vector2(0.8000016, 41.46)
+
+[node name="World" type="Node2D" unique_id=955046952]
+
+[node name="Player" parent="." unique_id=505097129 instance=ExtResource("1_f3sb7")]
+
+[node name="OceanBackground" type="ColorRect" parent="." unique_id=1658668544]
+z_index = -10
+offset_left = -6429.0
+offset_top = -1987.0
+offset_right = 5571.0
+offset_bottom = 2013.0
+offset_transform_position = Vector2(-6000, -2000)
+color = Color(0.101960786, 0.21960784, 0.54901963, 1)
+
+[node name="WorldBounds" type="StaticBody2D" parent="." unique_id=1951149591]
+
+[node name="Ceiling" type="CollisionShape2D" parent="WorldBounds" unique_id=1021785779]
+position = Vector2(-7.4997635, -2035)
+scale = Vector2(100, 100)
+shape = SubResource("RectangleShape2D_exsps")
+
+[node name="Seafloor" type="CollisionShape2D" parent="WorldBounds" unique_id=900103353]
+position = Vector2(-0.5, 2020.5)
+scale = Vector2(100, 100)
+shape = SubResource("RectangleShape2D_8bfxb")
+
+[node name="LeftWall" type="CollisionShape2D" parent="WorldBounds" unique_id=576676218]
+position = Vector2(-6010.5, -21.500092)
+scale = Vector2(100, 100)
+shape = SubResource("RectangleShape2D_asjer")
+
+[node name="RightWall" type="CollisionShape2D" parent="WorldBounds" unique_id=898752392]
+position = Vector2(6018, -10.000061)
+scale = Vector2(100, 100)
+shape = SubResource("RectangleShape2D_6eotj")
+
+[node name="PlanktonSpawner" type="Node2D" parent="." unique_id=1445426365]
+script = ExtResource("3_tlwt5")
+plankton_scene = ExtResource("2_fj7yv")
+
+[node name="HUD" type="CanvasLayer" parent="." unique_id=1644651236]
+script = ExtResource("4_aqk2v")
+
+[node name="UI" type="Control" parent="HUD" unique_id=8776350]
+layout_mode = 3
+anchors_preset = 0
+offset_left = -576.0
+offset_top = -324.0
+offset_right = 576.0
+offset_bottom = 324.0
+
+[node name="EvolutionLabel" type="Label" parent="HUD/UI" unique_id=16336885]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 270.0
+offset_bottom = 143.0
+theme_override_font_sizes/font_size = 28
+text = "TEST HUD
+Evolution Points: 0
+Banked: 0"
+
+[node name="Mate" parent="." unique_id=1200193917 instance=ExtResource("5_036b0")]
+position = Vector2(346, -185)
