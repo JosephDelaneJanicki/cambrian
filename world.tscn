@@ -81,3 +81,6 @@ Banked: 0"
 
 [node name="Mate" parent="." unique_id=1200193917 instance=ExtResource("5_036b0")]
 position = Vector2(346, -185)
+
+[node name="Mate2" parent="." unique_id=956428870 instance=ExtResource("5_036b0")]
+position = Vector2(-276, -154)

@@ -10,6 +10,12 @@ signal evolution_points_changed(
 	banked_points: int
 )
 
+signal mate_range_changed(
+	in_range: bool
+)
+
+signal reproduced
+
 
 # ============================================================
 # MOVEMENT
@@ -36,6 +42,13 @@ var has_jaws: bool = false
 
 var evolution_points: int = 0
 var banked_evolution_points: int = 0
+
+
+# ============================================================
+# REPRODUCTION STATE
+# ============================================================
+
+var nearby_mate: Area2D = null
 
 
 # ============================================================
@@ -130,6 +143,14 @@ func _physics_process(delta: float) -> void:
 
 
 	# --------------------------------------------------------
+	# REPRODUCTION INPUT
+	# --------------------------------------------------------
+
+	if Input.is_action_just_pressed("reproduce"):
+		attempt_reproduction()
+
+
+	# --------------------------------------------------------
 	# APPLY MOVEMENT
 	# --------------------------------------------------------
 
@@ -181,6 +202,8 @@ func update_orientation() -> void:
 	# --------------------------------------------------------
 	# FEEDING AREA
 	# --------------------------------------------------------
+
+	# Keep this exactly as our known-good transform setup.
 
 	if facing_left:
 
@@ -237,5 +260,84 @@ func add_evolution_points(amount: int) -> void:
 		"Evolution Points: ",
 		evolution_points,
 		" | Banked: ",
+		banked_evolution_points
+	)
+
+
+# ============================================================
+# MATE RANGE
+# ============================================================
+
+func set_nearby_mate(mate: Area2D) -> void:
+
+	nearby_mate = mate
+
+	mate_range_changed.emit(true)
+
+
+func clear_nearby_mate(mate: Area2D) -> void:
+
+	# Don't clear a different mate if multiple mates
+	# eventually overlap their detection ranges.
+	if nearby_mate != mate:
+		return
+
+	nearby_mate = null
+
+	mate_range_changed.emit(false)
+
+
+# ============================================================
+# REPRODUCTION
+# ============================================================
+
+func attempt_reproduction() -> void:
+
+	if nearby_mate == null:
+		print("No compatible mate nearby.")
+		return
+
+	if not is_instance_valid(nearby_mate):
+		nearby_mate = null
+		mate_range_changed.emit(false)
+		return
+
+	if not nearby_mate.has_method("can_reproduce_with"):
+		return
+
+	if not nearby_mate.can_reproduce_with(self):
+		print("Mate is currently unavailable.")
+		return
+
+
+	# --------------------------------------------------------
+	# BANK CURRENT PROGRESS
+	# --------------------------------------------------------
+
+	banked_evolution_points = evolution_points
+
+
+	# --------------------------------------------------------
+	# TELL MATE REPRODUCTION OCCURRED
+	# --------------------------------------------------------
+
+	if nearby_mate.has_method("on_reproduction"):
+		nearby_mate.on_reproduction(self)
+
+
+	# --------------------------------------------------------
+	# UPDATE HUD
+	# --------------------------------------------------------
+
+	evolution_points_changed.emit(
+		evolution_points,
+		banked_evolution_points
+	)
+
+	reproduced.emit()
+
+	print(
+		"Reproduction successful! ",
+		"Banked Evolution Points: ",
 		banked_evolution_points
 	)
