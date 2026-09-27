@@ -10,13 +10,13 @@
 [ext_resource type="Texture2D" uid="uid://b41c8aqrb2jev" path="res://9804613b-1210-4f6c-903e-72ab1f169e37.png" id="8_gbfbk"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_exsps"]
-size = Vector2(163.00499, 1.0800004)
+size = Vector2(209.60498, 6.5499988)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_8bfxb"]
-size = Vector2(162.59499, 2.1950018)
+size = Vector2(208.29375, 7.988747)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_asjer"]
-size = Vector2(1.4399986, 92.73)
+size = Vector2(4.58, 96.87)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_6eotj"]
 size = Vector2(2.02, 92.82001)
@@ -37,22 +37,22 @@ color = Color(0.101960786, 0.21960784, 0.54901963, 1)
 [node name="WorldBounds" type="StaticBody2D" parent="." unique_id=1951149591]
 
 [node name="Ceiling" type="CollisionShape2D" parent="WorldBounds" unique_id=1021785779]
-position = Vector2(-770.25024, -4660)
+position = Vector2(1559.7501, -4386.5)
 scale = Vector2(100, 100)
 shape = SubResource("RectangleShape2D_exsps")
 
 [node name="Seafloor" type="CollisionShape2D" parent="WorldBounds" unique_id=900103353]
-position = Vector2(-771.24976, 4479.25)
+position = Vector2(1522.687, 4188.5625)
 scale = Vector2(100, 100)
 shape = SubResource("RectangleShape2D_8bfxb")
 
 [node name="LeftWall" type="CollisionShape2D" parent="WorldBounds" unique_id=576676218]
-position = Vector2(-8887, -33.500122)
+position = Vector2(-8900.999, 126)
 scale = Vector2(100, 100)
 shape = SubResource("RectangleShape2D_asjer")
 
 [node name="RightWall" type="CollisionShape2D" parent="WorldBounds" unique_id=898752392]
-position = Vector2(7308, -52.00026)
+position = Vector2(11863, 236.99998)
 scale = Vector2(100, 100)
 shape = SubResource("RectangleShape2D_6eotj")
 
@@ -171,6 +171,6 @@ minimum_spawn_distance = 700.0
 
 [node name="9804613b12104f6c903e72Ab1f169e37" type="Sprite2D" parent="." unique_id=646519228]
 z_index = -10
-position = Vector2(-703.9995, -61.375)
-scale = Vector2(7.3916974, 13.047603)
+position = Vector2(1503, -26)
+scale = Vector2(9.3926, 12.382758)
 texture = ExtResource("8_gbfbk")
