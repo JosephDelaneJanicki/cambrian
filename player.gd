@@ -25,6 +25,10 @@ signal died(
 	banked_points: int
 )
 
+signal sensory_threat_changed(
+	threat_position: Vector2,
+	detected: bool
+)
 
 # ============================================================
 # BASE MOVEMENT
@@ -33,6 +37,7 @@ signal died(
 @export var max_speed: float = 250.0
 @export var propulsion: float = 350.0
 @export var drag: float = 80.0
+@export var base_turn_speed: float = 5.0
 
 @export_range(0.0, 89.0) var max_pitch_degrees: float = 80.0
 
@@ -45,6 +50,16 @@ signal died(
 
 var health: float = 100.0
 var is_dead: bool = false
+
+
+# ============================================================
+# BITE
+# ============================================================
+
+@export var bite_damage: float = 40.0
+@export var bite_cooldown: float = 0.65
+
+var bite_timer: float = 0.0
 
 
 # ============================================================
@@ -70,8 +85,11 @@ var nearby_mate: Area2D = null
 @onready var feeding_pivot: Node2D = $FeedingPivot
 @onready var feeding_area: Area2D = $FeedingPivot/FeedingArea
 
+@onready var bite_area: Area2D = $FeedingPivot/BiteArea
+
 @onready var body_collision: CollisionShape2D = $CollisionShape2D
 
+@onready var sensory_area: Area2D = $SensoryArea
 
 # ============================================================
 # MOVEMENT STATE
@@ -101,6 +119,10 @@ func _ready() -> void:
 		evolution_points,
 		LineageManager.banked_evolution_points
 	)
+	sensory_area.monitoring = (
+		LineageManager.has_sensory_organs
+	)
+	
 
 
 # ============================================================
@@ -128,6 +150,19 @@ func _physics_process(delta: float) -> void:
 		return
 
 
+	# --------------------------------------------------------
+	# BITE COOLDOWN
+	# --------------------------------------------------------
+
+	if bite_timer > 0.0:
+
+		bite_timer -= delta
+
+
+	# --------------------------------------------------------
+	# DIRECTIONAL INPUT
+	# --------------------------------------------------------
+
 	var input_direction: Vector2 = Input.get_vector(
 		"ui_left",
 		"ui_right",
@@ -137,15 +172,45 @@ func _physics_process(delta: float) -> void:
 
 
 	# --------------------------------------------------------
-	# AIM
+	# AIM / TURNING
 	# --------------------------------------------------------
 
 	if input_direction != Vector2.ZERO:
 
-		facing_direction = input_direction.normalized()
+		var target_direction: Vector2 = (
+			input_direction.normalized()
+		)
+
+
+		# ----------------------------------------------------
+		# PAIRED FINS
+		# ----------------------------------------------------
+		# Paired fins provide enough directional control to
+		# immediately redirect the body.
+		# ----------------------------------------------------
+
+		if LineageManager.has_paired_fins:
+
+			facing_direction = target_direction
+
+
+		# ----------------------------------------------------
+		# PRIMITIVE TURNING
+		# ----------------------------------------------------
+
+		else:
+
+			facing_direction = facing_direction.lerp(
+				target_direction,
+				clamp(
+					base_turn_speed * delta,
+					0.0,
+					1.0
+				)
+			).normalized()
+
 
 		update_orientation()
-
 
 	# --------------------------------------------------------
 	# PROPULSION
@@ -177,13 +242,26 @@ func _physics_process(delta: float) -> void:
 
 
 	# --------------------------------------------------------
-	# REPRODUCTION
+	# REPRODUCTION INPUT
 	# --------------------------------------------------------
 
 	if Input.is_action_just_pressed("reproduce"):
 
 		attempt_reproduction()
 
+
+	# --------------------------------------------------------
+	# BITE INPUT
+	# --------------------------------------------------------
+
+	if Input.is_action_just_pressed("bite"):
+
+		attempt_bite()
+
+
+	# --------------------------------------------------------
+	# APPLY MOVEMENT
+	# --------------------------------------------------------
 
 	move_and_slide()
 
@@ -198,6 +276,10 @@ func update_orientation() -> void:
 		return
 
 
+	# --------------------------------------------------------
+	# VISUAL BODY
+	# --------------------------------------------------------
+
 	fish_body.set_orientation(
 		facing_direction,
 		max_pitch_degrees
@@ -205,6 +287,10 @@ func update_orientation() -> void:
 
 	var facing_left: bool = fish_body.is_facing_left()
 
+
+	# --------------------------------------------------------
+	# CALCULATE PITCH
+	# --------------------------------------------------------
 
 	var pitch: float = atan2(
 		facing_direction.y,
@@ -223,7 +309,11 @@ func update_orientation() -> void:
 
 
 	# --------------------------------------------------------
-	# KNOWN-GOOD FEEDING TRANSFORM
+	# FEEDING + BITE PIVOT
+	# --------------------------------------------------------
+	#
+	# BiteArea is under FeedingPivot, so it inherits the
+	# exact same known-good mouth orientation.
 	# --------------------------------------------------------
 
 	if facing_left:
@@ -241,8 +331,18 @@ func update_orientation() -> void:
 
 		feeding_pivot.rotation = pitch
 
+	# --------------------------------------------------------
+	# BODY COLLISION
+	# --------------------------------------------------------
+	#
+	# The collision shape must use the same mirrored pitch
+	# logic as FishBody.
+	# --------------------------------------------------------
 
-	body_collision.rotation = pitch
+	if facing_left:
+		body_collision.rotation = -pitch
+	else:
+		body_collision.rotation = pitch
 
 
 # ============================================================
@@ -284,6 +384,7 @@ func take_damage(amount: float) -> void:
 
 
 	if health <= 0.0:
+
 		die()
 
 
@@ -329,6 +430,11 @@ func die() -> void:
 		false
 	)
 
+	bite_area.set_deferred(
+		"monitoring",
+		false
+	)
+
 
 	print(
 		"Generation ",
@@ -353,13 +459,81 @@ func die() -> void:
 
 
 # ============================================================
+# BITE
+# ============================================================
+
+func attempt_bite() -> void:
+
+	if is_dead:
+		return
+
+
+	# Jaws are required to use BiteArea.
+	if not can_bite():
+
+		print(
+			"Cannot bite: this lineage has not evolved jaws."
+		)
+
+		return
+
+
+	if bite_timer > 0.0:
+		return
+
+
+	# Starting the cooldown here means a bite attempt counts
+	# even if nothing happens to be in range.
+	bite_timer = bite_cooldown
+
+
+	var bodies: Array[Node2D] = (
+		bite_area.get_overlapping_bodies()
+	)
+
+
+	var hit_something: bool = false
+
+
+	for body: Node2D in bodies:
+
+		if body == self:
+			continue
+
+
+		if body.has_method("take_damage"):
+
+			body.take_damage(
+				bite_damage
+			)
+
+			hit_something = true
+
+
+			print(
+				"Bite hit for ",
+				bite_damage,
+				" damage!"
+			)
+
+
+	if not hit_something:
+
+		print(
+			"Bite missed."
+		)
+
+
+# ============================================================
 # EVOLUTION EFFECTS
 # ============================================================
 
 func get_current_max_speed() -> float:
 
 	if LineageManager.has_improved_tail:
+
 		return max_speed * 1.35
+
 
 	return max_speed
 
@@ -367,7 +541,9 @@ func get_current_max_speed() -> float:
 func get_current_propulsion() -> float:
 
 	if LineageManager.has_improved_tail:
+
 		return propulsion * 1.30
+
 
 	return propulsion
 
@@ -375,7 +551,9 @@ func get_current_propulsion() -> float:
 func get_turning_modifier() -> float:
 
 	if LineageManager.has_paired_fins:
+
 		return 1.35
+
 
 	return 1.0
 
@@ -383,7 +561,9 @@ func get_turning_modifier() -> float:
 func get_sensory_modifier() -> float:
 
 	if LineageManager.has_sensory_organs:
+
 		return 1.50
+
 
 	return 1.0
 
@@ -391,7 +571,9 @@ func get_sensory_modifier() -> float:
 func get_damage_modifier() -> float:
 
 	if LineageManager.has_dermal_armor:
+
 		return 0.65
+
 
 	return 1.0
 
@@ -558,4 +740,40 @@ func attempt_reproduction() -> void:
 		"Reproduction successful! ",
 		"Banked Evolution Points: ",
 		LineageManager.banked_evolution_points
+	)
+
+
+# ============================================================
+# SENSORY SYSTEM
+# ============================================================
+
+func _on_sensory_area_body_entered(
+	body: Node2D
+) -> void:
+
+	if not LineageManager.has_sensory_organs:
+		return
+
+	if not body.is_in_group("predator"):
+		return
+
+	sensory_threat_changed.emit(
+		body.global_position,
+		true
+	)
+
+
+func _on_sensory_area_body_exited(
+	body: Node2D
+) -> void:
+
+	if not LineageManager.has_sensory_organs:
+		return
+
+	if not body.is_in_group("predator"):
+		return
+
+	sensory_threat_changed.emit(
+		body.global_position,
+		false
 	)

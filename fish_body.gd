@@ -7,8 +7,12 @@ extends Node2D
 #
 # Shared visual representation of the species.
 #
-# Player, mates, and other members of the lineage can all
-# use this same FishBody scene.
+# BodyPivot controls BOTH:
+# - horizontal facing
+# - vertical pitch
+#
+# This means every anatomical evolution placed under
+# BodyPivot automatically follows the fish orientation.
 # ============================================================
 
 
@@ -17,9 +21,20 @@ extends Node2D
 # ============================================================
 
 @onready var body_pivot: Node2D = $BodyPivot
-@onready var sprite: Sprite2D = $BodyPivot/Sprite2D
 
+@onready var sprite: Sprite2D = (
+	$BodyPivot/Sprite2D
+)
 
+@onready var jaw_visual: Sprite2D = (
+	$BodyPivot/JawVisual
+)
+@onready var fins_visual: Sprite2D = (
+	$BodyPivot/FinsVisual
+)
+@onready var tail_visual: Sprite2D = (
+	$BodyPivot/TailVisual
+)
 # ============================================================
 # EVOLUTION STATE
 # ============================================================
@@ -35,6 +50,7 @@ var has_dermal_armor: bool = false
 # FACING STATE
 # ============================================================
 
+# Canonical artwork faces RIGHT.
 var facing_left: bool = false
 
 
@@ -56,9 +72,11 @@ func set_orientation(
 	# --------------------------------------------------------
 
 	if direction.x < -0.05:
+
 		facing_left = true
 
 	elif direction.x > 0.05:
+
 		facing_left = false
 
 
@@ -71,9 +89,11 @@ func set_orientation(
 		abs(direction.x)
 	)
 
+
 	var max_pitch: float = deg_to_rad(
 		max_pitch_degrees
 	)
+
 
 	pitch = clamp(
 		pitch,
@@ -86,17 +106,31 @@ func set_orientation(
 	# HORIZONTAL FACING
 	# --------------------------------------------------------
 
-	sprite.flip_h = facing_left
+
+	if facing_left:
+
+		body_pivot.scale.x = -abs(
+			body_pivot.scale.x
+		)
+
+	else:
+
+		body_pivot.scale.x = abs(
+			body_pivot.scale.x
+		)
 
 
 	# --------------------------------------------------------
 	# PITCH
 	# --------------------------------------------------------
 
+
 	if facing_left:
+
 		body_pivot.rotation = -pitch
 
 	else:
+
 		body_pivot.rotation = pitch
 
 
@@ -105,6 +139,7 @@ func set_orientation(
 # ============================================================
 
 func is_facing_left() -> bool:
+
 	return facing_left
 
 
@@ -126,6 +161,7 @@ func apply_evolution(
 	has_sensory_organs = sensory_organs
 	has_dermal_armor = dermal_armor
 
+
 	update_evolution_visuals()
 
 
@@ -135,6 +171,8 @@ func apply_evolution(
 
 func update_evolution_visuals() -> void:
 
-
-
-	pass
+	jaw_visual.visible = has_jaws
+	
+	fins_visual.visible = has_paired_fins
+	
+	tail_visual.visible = has_improved_tail

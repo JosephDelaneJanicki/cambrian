@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://cxf8rhj8cps5r"]
 
-[ext_resource type="Texture2D" uid="uid://dd4pqkc0oy4hm" path="res://icon.svg" id="1_dke7l"]
 [ext_resource type="Script" uid="uid://qjovkwa68pqm" path="res://fish_body.gd" id="1_ll6un"]
+[ext_resource type="Texture2D" uid="uid://b10aw3wlbx3a3" path="res://SpriteSheet.png" id="2_ll6un"]
 
 [node name="FishBody" type="Node2D" unique_id=47505641]
 script = ExtResource("1_ll6un")
@@ -9,4 +9,29 @@ script = ExtResource("1_ll6un")
 [node name="BodyPivot" type="Node2D" parent="." unique_id=953614164]
 
 [node name="Sprite2D" type="Sprite2D" parent="BodyPivot" unique_id=695862655]
-texture = ExtResource("1_dke7l")
+texture = ExtResource("2_ll6un")
+region_enabled = true
+region_rect = Rect2(10.077087, 17.439224, 148.81116, 76.17714)
+
+[node name="JawVisual" type="Sprite2D" parent="BodyPivot" unique_id=445361674]
+position = Vector2(62.11719, 19.425299)
+scale = Vector2(1.0727485, 1.2097328)
+texture = ExtResource("2_ll6un")
+region_enabled = true
+region_rect = Rect2(488.95093, 382.65723, 93.34009, 77.67215)
+
+[node name="FinsVisual" type="Sprite2D" parent="BodyPivot" unique_id=752145747]
+position = Vector2(11.000001, -3.9999998)
+scale = Vector2(0.4757281, 0.4582106)
+texture = ExtResource("2_ll6un")
+flip_h = true
+region_enabled = true
+region_rect = Rect2(608.00006, 314.00006, 103, 61.00003)
+
+[node name="TailVisual" type="Sprite2D" parent="BodyPivot" unique_id=354218243]
+position = Vector2(-74, 7.000001)
+rotation = -0.3822271
+texture = ExtResource("2_ll6un")
+flip_h = true
+region_enabled = true
+region_rect = Rect2(109.21222, 197.74097, 91.69446, 103.755585)

@@ -5,8 +5,11 @@ extends CharacterBody2D
 # PREDATOR
 # ============================================================
 #
-# Detects the player, pursues them, attacks when they enter
-# the attack area, then retreats briefly before attacking again.
+# Detects the player, pursues them, attacks at close range,
+# retreats after attacking, and can be killed by jaws.
+#
+# BodyPivot controls the predator's directional anatomy:
+# sprite, physical collision, and attack hitbox.
 # ============================================================
 
 
@@ -17,6 +20,16 @@ extends CharacterBody2D
 @export var swim_speed: float = 180.0
 @export var acceleration: float = 300.0
 @export var drag: float = 150.0
+
+
+# ============================================================
+# HEALTH
+# ============================================================
+
+@export var max_health: float = 100.0
+
+var health: float = 100.0
+var is_dead: bool = false
 
 
 # ============================================================
@@ -34,11 +47,42 @@ extends CharacterBody2D
 # NODE REFERENCES
 # ============================================================
 
-@onready var sprite: Sprite2D = $Sprite2D
+@onready var body_pivot: Node2D = $BodyPivot
 
-@onready var attack_area: Area2D = $AttackArea
+@onready var sprite: Sprite2D = (
+	$BodyPivot/Sprite2D
+)
+
+@onready var attack_area: Area2D = (
+	$BodyPivot/AttackArea
+)
+
+# ============================================================
+# WANDERING
+# ============================================================
+
+@export var wander_speed: float = 65.0
+
+@export var wander_change_min: float = 2.0
+@export var wander_change_max: float = 5.0
+
+var wander_direction: Vector2 = Vector2.RIGHT
+var wander_timer: float = 0.0
+
+func choose_new_wander_direction() -> void:
+
+	wander_direction = Vector2.RIGHT.rotated(
+		randf_range(
+			0.0,
+			TAU
+		)
+	)
 
 
+	wander_timer = randf_range(
+		wander_change_min,
+		wander_change_max
+	)
 # ============================================================
 # TARGET STATE
 # ============================================================
@@ -57,10 +101,34 @@ var retreat_direction: Vector2 = Vector2.ZERO
 
 
 # ============================================================
+# FACING STATE
+# ============================================================
+
+var facing_left: bool = false
+
+
+# ============================================================
+# READY
+# ============================================================
+
+func _ready() -> void:
+
+	health = max_health
+	choose_new_wander_direction()
+	update_visual_facing(
+		Vector2.RIGHT
+	)
+
+
+# ============================================================
 # PHYSICS
 # ============================================================
 
 func _physics_process(delta: float) -> void:
+
+	if is_dead:
+		return
+
 
 	# --------------------------------------------------------
 	# TIMERS
@@ -68,6 +136,7 @@ func _physics_process(delta: float) -> void:
 
 	if attack_timer > 0.0:
 		attack_timer -= delta
+
 
 	if retreat_timer > 0.0:
 		retreat_timer -= delta
@@ -94,15 +163,29 @@ func _physics_process(delta: float) -> void:
 
 
 	# --------------------------------------------------------
-	# NO TARGET
+	# WANDER
 	# --------------------------------------------------------
 
 	if target == null:
 
+		wander_timer -= delta
+
+
+		if wander_timer <= 0.0:
+
+			choose_new_wander_direction()
+
+
 		velocity = velocity.move_toward(
-			Vector2.ZERO,
-			drag * delta
+			wander_direction * wander_speed,
+			acceleration * delta
 		)
+
+
+		update_visual_facing(
+			wander_direction
+		)
+
 
 		move_and_slide()
 
@@ -160,9 +243,11 @@ func _physics_process(delta: float) -> void:
 		acceleration * delta
 	)
 
+
 	update_visual_facing(
 		direction
 	)
+
 
 	move_and_slide()
 
@@ -192,7 +277,7 @@ func is_target_in_attack_area() -> bool:
 
 
 # ============================================================
-# ATTACK
+# ATTACK PLAYER
 # ============================================================
 
 func attack_target() -> void:
@@ -204,10 +289,6 @@ func attack_target() -> void:
 	if not target.has_method("take_damage"):
 		return
 
-
-	# --------------------------------------------------------
-	# DAMAGE
-	# --------------------------------------------------------
 
 	target.take_damage(
 		attack_damage
@@ -228,7 +309,7 @@ func attack_target() -> void:
 
 
 	# --------------------------------------------------------
-	# RETREAT DIRECTION
+	# RETREAT
 	# --------------------------------------------------------
 
 	retreat_direction = (
@@ -242,11 +323,8 @@ func attack_target() -> void:
 		retreat_direction = Vector2.LEFT
 
 
-	# --------------------------------------------------------
-	# START RETREAT
-	# --------------------------------------------------------
-
 	retreat_timer = retreat_duration
+
 
 	velocity = (
 		retreat_direction
@@ -255,21 +333,102 @@ func attack_target() -> void:
 
 
 # ============================================================
-# VISUAL FACING
+# TAKE DAMAGE
+# ============================================================
+
+func take_damage(amount: float) -> void:
+
+	if is_dead:
+		return
+
+
+	health = max(
+		health - amount,
+		0.0
+	)
+
+
+	print(
+		"Predator took ",
+		amount,
+		" damage. Health: ",
+		health,
+		"/",
+		max_health
+	)
+
+
+	if health <= 0.0:
+		die()
+
+
+# ============================================================
+# DEATH
+# ============================================================
+
+func die() -> void:
+
+	if is_dead:
+		return
+
+
+	is_dead = true
+	velocity = Vector2.ZERO
+
+
+	print(
+		"Predator killed!"
+	)
+
+
+	queue_free()
+
+
+# ============================================================
+# ORIENTATION
 # ============================================================
 
 func update_visual_facing(
 	direction: Vector2
 ) -> void:
 
+	if direction == Vector2.ZERO:
+		return
+
+
+	# --------------------------------------------------------
+	# DETERMINE FACING
+	# --------------------------------------------------------
+
 	if direction.x < -0.05:
 
-		sprite.flip_h = true
+		facing_left = true
 
 
 	elif direction.x > 0.05:
 
-		sprite.flip_h = false
+		facing_left = false
+
+
+	# --------------------------------------------------------
+	# MIRROR ENTIRE PREDATOR BODY
+	# --------------------------------------------------------
+	#
+	# Because Sprite2D, physical collision, and AttackArea
+	# all live underneath BodyPivot, they flip together.
+	# --------------------------------------------------------
+
+	if facing_left:
+
+		body_pivot.scale.x = -abs(
+			body_pivot.scale.x
+		)
+
+	else:
+
+		body_pivot.scale.x = abs(
+			body_pivot.scale.x
+		)
 
 
 # ============================================================

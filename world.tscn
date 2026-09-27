@@ -6,18 +6,20 @@
 [ext_resource type="Script" uid="uid://drythkmc1uxlm" path="res://hud.gd" id="4_aqk2v"]
 [ext_resource type="PackedScene" uid="uid://d14i85fn0pamc" path="res://Mate.tscn" id="5_036b0"]
 [ext_resource type="PackedScene" uid="uid://dyvqh488tgbly" path="res://Predator.tscn" id="6_dwbse"]
+[ext_resource type="Script" uid="uid://bmsytpihnsu6h" path="res://ecosystem_spawner.gd" id="7_pkg7o"]
+[ext_resource type="Texture2D" uid="uid://b41c8aqrb2jev" path="res://9804613b-1210-4f6c-903e-72ab1f169e37.png" id="8_gbfbk"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_exsps"]
-size = Vector2(121.149994, 1.0800004)
+size = Vector2(163.00499, 1.0800004)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_8bfxb"]
-size = Vector2(121.509995, 0.89000034)
+size = Vector2(162.59499, 2.1950018)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_asjer"]
-size = Vector2(1.3099976, 41.489998)
+size = Vector2(1.4399986, 92.73)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_6eotj"]
-size = Vector2(0.8000016, 41.46)
+size = Vector2(2.02, 92.82001)
 
 [node name="World" type="Node2D" unique_id=955046952]
 
@@ -25,32 +27,32 @@ size = Vector2(0.8000016, 41.46)
 
 [node name="OceanBackground" type="ColorRect" parent="." unique_id=1658668544]
 z_index = -10
-offset_left = -6429.0
-offset_top = -1987.0
-offset_right = 5571.0
-offset_bottom = 2013.0
+offset_left = -8895.0
+offset_top = -4640.0
+offset_right = 7316.0
+offset_bottom = 4508.0
 offset_transform_position = Vector2(-6000, -2000)
 color = Color(0.101960786, 0.21960784, 0.54901963, 1)
 
 [node name="WorldBounds" type="StaticBody2D" parent="." unique_id=1951149591]
 
 [node name="Ceiling" type="CollisionShape2D" parent="WorldBounds" unique_id=1021785779]
-position = Vector2(-7.4997635, -2035)
+position = Vector2(-770.25024, -4660)
 scale = Vector2(100, 100)
 shape = SubResource("RectangleShape2D_exsps")
 
 [node name="Seafloor" type="CollisionShape2D" parent="WorldBounds" unique_id=900103353]
-position = Vector2(-0.5, 2020.5)
+position = Vector2(-771.24976, 4479.25)
 scale = Vector2(100, 100)
 shape = SubResource("RectangleShape2D_8bfxb")
 
 [node name="LeftWall" type="CollisionShape2D" parent="WorldBounds" unique_id=576676218]
-position = Vector2(-6010.5, -21.500092)
+position = Vector2(-8887, -33.500122)
 scale = Vector2(100, 100)
 shape = SubResource("RectangleShape2D_asjer")
 
 [node name="RightWall" type="CollisionShape2D" parent="WorldBounds" unique_id=898752392]
-position = Vector2(6018, -10.000061)
+position = Vector2(7308, -52.00026)
 scale = Vector2(100, 100)
 shape = SubResource("RectangleShape2D_6eotj")
 
@@ -79,6 +81,12 @@ theme_override_font_sizes/font_size = 28
 text = "TEST HUD
 Evolution Points: 0
 Banked: 0"
+
+[node name="ThreatIndicator" type="Label" parent="HUD/UI" unique_id=114209022]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+text = "⚠"
 
 [node name="EvolutionScreen" type="Control" parent="HUD" unique_id=420258674]
 layout_mode = 3
@@ -152,11 +160,17 @@ offset_right = 824.0
 offset_bottom = 570.0
 mouse_filter = 2
 
-[node name="Mate" parent="." unique_id=1200193917 instance=ExtResource("5_036b0")]
-position = Vector2(346, -185)
+[node name="EcosystemSpawner" type="Node2D" parent="." unique_id=1320808780]
+script = ExtResource("7_pkg7o")
+mate_scene = ExtResource("5_036b0")
+predator_scene = ExtResource("6_dwbse")
+max_mates = 2
+max_predators = 7
+spawn_radius = 1500.0
+minimum_spawn_distance = 700.0
 
-[node name="Mate2" parent="." unique_id=956428870 instance=ExtResource("5_036b0")]
-position = Vector2(-276, -154)
-
-[node name="Predator" parent="." unique_id=848885657 instance=ExtResource("6_dwbse")]
-position = Vector2(21, -608)
+[node name="9804613b12104f6c903e72Ab1f169e37" type="Sprite2D" parent="." unique_id=646519228]
+z_index = -10
+position = Vector2(-703.9995, -61.375)
+scale = Vector2(7.3916974, 13.047603)
+texture = ExtResource("8_gbfbk")

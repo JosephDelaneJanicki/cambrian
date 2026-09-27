@@ -40,13 +40,24 @@ func _ready() -> void:
 		LineageManager.has_sensory_organs,
 		LineageManager.has_dermal_armor
 	)
-
+	
+	choose_new_wander_direction()
 
 	fish_body.set_orientation(
 		starting_direction.normalized(),
 		max_pitch_degrees
 	)
 
+# ============================================================
+# WANDERING
+# ============================================================
+
+@export var wander_speed: float = 45.0
+@export var direction_change_min: float = 1.5
+@export var direction_change_max: float = 4.0
+
+var wander_direction: Vector2 = Vector2.RIGHT
+var direction_timer: float = 0.0
 
 # ============================================================
 # PLAYER ENTERS RANGE
@@ -164,4 +175,52 @@ func on_reproduction(
 	)
 
 
+	# Mate is consumed after successful reproduction.
 	queue_free()
+
+
+# ============================================================
+# WANDERING
+# ============================================================
+
+func _process(delta: float) -> void:
+
+	direction_timer -= delta
+
+
+	if direction_timer <= 0.0:
+
+		choose_new_wander_direction()
+
+
+	position += (
+		wander_direction
+		* wander_speed
+		* delta
+	)
+
+
+	fish_body.set_orientation(
+		wander_direction,
+		max_pitch_degrees
+	)
+
+
+# ============================================================
+# CHOOSE WANDER DIRECTION
+# ============================================================
+
+func choose_new_wander_direction() -> void:
+
+	wander_direction = Vector2.RIGHT.rotated(
+		randf_range(
+			0.0,
+			TAU
+		)
+	)
+
+
+	direction_timer = randf_range(
+		direction_change_min,
+		direction_change_max
+	)

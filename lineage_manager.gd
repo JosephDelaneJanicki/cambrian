@@ -28,11 +28,11 @@ var banked_evolution_points: int = 0
 # EVOLUTION COSTS
 # ============================================================
 
-const JAWS_COST: int = 5
-const PAIRED_FINS_COST: int = 5
-const IMPROVED_TAIL_COST: int = 8
-const SENSORY_ORGANS_COST: int = 8
-const DERMAL_ARMOR_COST: int = 10
+const JAWS_COST: int = 30
+const PAIRED_FINS_COST: int = 20
+const IMPROVED_TAIL_COST: int = 30
+const SENSORY_ORGANS_COST: int = 20
+const DERMAL_ARMOR_COST: int = 40
 
 
 # ============================================================

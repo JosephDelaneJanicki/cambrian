@@ -1,7 +1,11 @@
 [gd_scene format=3 uid="uid://d11txsy6v00d5"]
 
 [ext_resource type="Script" uid="uid://b72jcmc377pvt" path="res://plankton.gd" id="1_rohqe"]
-[ext_resource type="Texture2D" uid="uid://dd4pqkc0oy4hm" path="res://icon.svg" id="2_h2fwh"]
+[ext_resource type="Texture2D" uid="uid://b10aw3wlbx3a3" path="res://SpriteSheet.png" id="2_rohqe"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kpjcp"]
+atlas = ExtResource("2_rohqe")
+region = Rect2(1401.0576, 577.41705, 72.63403, 77.94867)
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_kpjcp"]
 radius = 7.0
@@ -10,9 +14,9 @@ radius = 7.0
 script = ExtResource("1_rohqe")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1768384000]
-position = Vector2(1.1920929e-07, -1.1920929e-07)
-scale = Vector2(0.1, 0.1)
-texture = ExtResource("2_h2fwh")
+position = Vector2(-1.0728836e-06, -0.49999923)
+scale = Vector2(0.25, 0.24675326)
+texture = SubResource("AtlasTexture_kpjcp")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=2008944142]
 shape = SubResource("CircleShape2D_kpjcp")

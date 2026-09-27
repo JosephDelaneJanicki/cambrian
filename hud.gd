@@ -8,6 +8,10 @@ extends CanvasLayer
 @onready var ui: Control = $UI
 @onready var evolution_label: Label = $UI/EvolutionLabel
 
+@onready var threat_indicator: Label = (
+	$UI/ThreatIndicator
+)
+
 
 # ============================================================
 # EVOLUTION SCREEN REFERENCES
@@ -47,6 +51,7 @@ extends CanvasLayer
 	$EvolutionScreen/Panel/VBoxContainer/NextGenerationButton
 )
 
+
 # ============================================================
 # PLAYER REFERENCE
 # ============================================================
@@ -68,13 +73,27 @@ var mate_nearby: bool = false
 
 
 # ============================================================
+# SENSORY STATE
+# ============================================================
+
+var sensory_threat_position: Vector2 = Vector2.ZERO
+var sensory_threat_detected: bool = false
+
+
+# ============================================================
 # READY
 # ============================================================
 
 func _ready() -> void:
 
 	ui.position = Vector2.ZERO
-	ui.size = get_viewport().get_visible_rect().size
+
+	ui.size = (
+		get_viewport()
+		.get_visible_rect()
+		.size
+	)
+
 
 	evolution_label.position = Vector2(
 		20.0,
@@ -88,6 +107,7 @@ func _ready() -> void:
 
 
 	evolution_screen.visible = false
+	threat_indicator.visible = false
 
 
 	# --------------------------------------------------------
@@ -127,6 +147,25 @@ func _ready() -> void:
 
 
 # ============================================================
+# PROCESS
+# ============================================================
+
+func _process(_delta: float) -> void:
+
+	if not sensory_threat_detected:
+		return
+
+	if player == null:
+		return
+
+	if not is_instance_valid(player):
+		return
+
+
+	update_threat_indicator()
+
+
+# ============================================================
 # FIND / CONNECT PLAYER
 # ============================================================
 
@@ -160,6 +199,10 @@ func find_and_connect_player() -> void:
 
 	player.died.connect(
 		_on_player_died
+	)
+
+	player.sensory_threat_changed.connect(
+		_on_sensory_threat_changed
 	)
 
 
@@ -227,6 +270,9 @@ func _on_player_died(
 
 	mate_nearby = false
 
+	sensory_threat_detected = false
+	threat_indicator.visible = false
+
 	show_evolution_screen()
 
 
@@ -262,12 +308,99 @@ func update_hud() -> void:
 
 
 # ============================================================
+# SENSORY WARNING
+# ============================================================
+
+func _on_sensory_threat_changed(
+	threat_position: Vector2,
+	detected: bool
+) -> void:
+
+	sensory_threat_position = threat_position
+	sensory_threat_detected = detected
+
+	threat_indicator.visible = detected
+
+
+func update_threat_indicator() -> void:
+
+	# CanvasLayer does not have get_viewport_rect().
+	# Get the visible rectangle from the Viewport instead.
+	var viewport_size: Vector2 = (
+		get_viewport()
+		.get_visible_rect()
+		.size
+	)
+
+
+	var screen_center: Vector2 = (
+		viewport_size * 0.5
+	)
+
+
+	var direction: Vector2 = (
+		sensory_threat_position
+		- player.global_position
+	).normalized()
+
+
+	if direction == Vector2.ZERO:
+
+		threat_indicator.position = (
+			screen_center
+			- threat_indicator.size * 0.5
+		)
+
+		return
+
+
+	var edge_margin: float = 60.0
+
+
+	var max_x: float = max(
+		screen_center.x - edge_margin,
+		1.0
+	)
+
+	var max_y: float = max(
+		screen_center.y - edge_margin,
+		1.0
+	)
+
+
+	var scale_to_edge: float = min(
+		max_x / max(
+			abs(direction.x),
+			0.001
+		),
+		max_y / max(
+			abs(direction.y),
+			0.001
+		)
+	)
+
+
+	var indicator_position: Vector2 = (
+		screen_center
+		+ direction * scale_to_edge
+	)
+
+
+	threat_indicator.position = (
+		indicator_position
+		- threat_indicator.size * 0.5
+	)
+
+
+# ============================================================
 # SHOW EVOLUTION SCREEN
 # ============================================================
 
 func show_evolution_screen() -> void:
 
 	evolution_screen.visible = true
+
+	threat_indicator.visible = false
 
 	update_evolution_screen()
 
@@ -368,14 +501,19 @@ func update_evolution_screen() -> void:
 
 	if LineageManager.has_sensory_organs:
 
-		sensory_button.text = "Sensory Organs — EVOLVED"
+		sensory_button.text = (
+			"Sensory Organs — EVOLVED"
+		)
+
 		sensory_button.disabled = true
 
 	else:
 
 		sensory_button.text = (
 			"Sensory Organs — "
-			+ str(LineageManager.SENSORY_ORGANS_COST)
+			+ str(
+				LineageManager.SENSORY_ORGANS_COST
+			)
 			+ " EP"
 		)
 
@@ -392,14 +530,19 @@ func update_evolution_screen() -> void:
 
 	if LineageManager.has_dermal_armor:
 
-		armor_button.text = "Dermal Armor — EVOLVED"
+		armor_button.text = (
+			"Dermal Armor — EVOLVED"
+		)
+
 		armor_button.disabled = true
 
 	else:
 
 		armor_button.text = (
 			"Dermal Armor — "
-			+ str(LineageManager.DERMAL_ARMOR_COST)
+			+ str(
+				LineageManager.DERMAL_ARMOR_COST
+			)
 			+ " EP"
 		)
 
@@ -416,50 +559,75 @@ func update_evolution_screen() -> void:
 
 func _on_jaws_pressed() -> void:
 
-	var purchased: bool = LineageManager.purchase_jaws()
+	var purchased: bool = (
+		LineageManager.purchase_jaws()
+	)
 
 	if purchased:
-		print("EVOLUTION PURCHASED: Jaws")
+
+		print(
+			"EVOLUTION PURCHASED: Jaws"
+		)
 
 	update_evolution_screen()
 
 
 func _on_fins_pressed() -> void:
 
-	var purchased: bool = LineageManager.purchase_paired_fins()
+	var purchased: bool = (
+		LineageManager.purchase_paired_fins()
+	)
 
 	if purchased:
-		print("EVOLUTION PURCHASED: Paired Fins")
+
+		print(
+			"EVOLUTION PURCHASED: Paired Fins"
+		)
 
 	update_evolution_screen()
 
 
 func _on_tail_pressed() -> void:
 
-	var purchased: bool = LineageManager.purchase_improved_tail()
+	var purchased: bool = (
+		LineageManager.purchase_improved_tail()
+	)
 
 	if purchased:
-		print("EVOLUTION PURCHASED: Improved Tail")
+
+		print(
+			"EVOLUTION PURCHASED: Improved Tail"
+		)
 
 	update_evolution_screen()
 
 
 func _on_sensory_pressed() -> void:
 
-	var purchased: bool = LineageManager.purchase_sensory_organs()
+	var purchased: bool = (
+		LineageManager.purchase_sensory_organs()
+	)
 
 	if purchased:
-		print("EVOLUTION PURCHASED: Sensory Organs")
+
+		print(
+			"EVOLUTION PURCHASED: Sensory Organs"
+		)
 
 	update_evolution_screen()
 
 
 func _on_armor_pressed() -> void:
 
-	var purchased: bool = LineageManager.purchase_dermal_armor()
+	var purchased: bool = (
+		LineageManager.purchase_dermal_armor()
+	)
 
 	if purchased:
-		print("EVOLUTION PURCHASED: Dermal Armor")
+
+		print(
+			"EVOLUTION PURCHASED: Dermal Armor"
+		)
 
 	update_evolution_screen()
 

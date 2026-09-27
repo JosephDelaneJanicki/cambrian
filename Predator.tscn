@@ -1,38 +1,47 @@
 [gd_scene format=3 uid="uid://dyvqh488tgbly"]
 
 [ext_resource type="Script" uid="uid://6t5uxp6pfmcg" path="res://predator.gd" id="1_hniil"]
-[ext_resource type="Texture2D" uid="uid://dd4pqkc0oy4hm" path="res://icon.svg" id="1_v1m0w"]
+[ext_resource type="Texture2D" uid="uid://c7okm6up5m5q0" path="res://PreditorSprite.png" id="2_hniil"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_hniil"]
-radius = 12.599999
-height = 26.8
+radius = 11.441915
+height = 50.6
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_84p6c"]
-radius = 37.8
+radius = 65.209274
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_exsps"]
-radius = 16.8
+radius = 11.400437
 
-[node name="Predator" type="CharacterBody2D" unique_id=307648078]
+[node name="Predator" type="CharacterBody2D" unique_id=307648078 groups=["predator"]]
+collision_layer = 2
 script = ExtResource("1_hniil")
 
-[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1568882824]
-scale = Vector2(2, 2)
-texture = ExtResource("1_v1m0w")
-
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=355035787]
+rotation = -1.5655603
 scale = Vector2(10, 10)
+skew = 0.017453194
 shape = SubResource("CapsuleShape2D_hniil")
 
 [node name="DetectionArea" type="Area2D" parent="." unique_id=86220904]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="DetectionArea" unique_id=1894069973]
+position = Vector2(0, 0.99999994)
 scale = Vector2(10, 10)
 shape = SubResource("CircleShape2D_84p6c")
 
-[node name="AttackArea" type="Area2D" parent="." unique_id=663611478]
+[node name="BodyPivot" type="Node2D" parent="." unique_id=155905644]
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="AttackArea" unique_id=960192399]
+[node name="Sprite2D" type="Sprite2D" parent="BodyPivot" unique_id=1568882824]
+scale = Vector2(0.3, 0.3)
+texture = ExtResource("2_hniil")
+region_enabled = true
+region_rect = Rect2(-0.5526123, -7.362854, 1778.6477, 899.95325)
+
+[node name="AttackArea" type="Area2D" parent="BodyPivot" unique_id=663611478]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="BodyPivot/AttackArea" unique_id=960192399]
+position = Vector2(161, 33)
 scale = Vector2(10, 10)
 shape = SubResource("CircleShape2D_exsps")
 

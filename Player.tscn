@@ -3,13 +3,18 @@
 [ext_resource type="Script" uid="uid://d3peh3kps572r" path="res://player.gd" id="1_kpjcp"]
 [ext_resource type="PackedScene" uid="uid://cxf8rhj8cps5r" path="res://FishBody.tscn" id="3_kne1u"]
 
-[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_6eotj"]
-radius = 60.4
-height = 124.0
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_slaac"]
+size = Vector2(101, 38)
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_8bfxb"]
-radius = 6.0
-height = 52.0
+radius = 36.0
+height = 80.0
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_exsps"]
+radius = 52.0
+height = 110.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_exsps"]
 
 [node name="Player" type="CharacterBody2D" unique_id=505097129 groups=["player"]]
 motion_mode = 1
@@ -17,7 +22,8 @@ script = ExtResource("1_kpjcp")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=360516057]
 z_index = 1
-shape = SubResource("CapsuleShape2D_6eotj")
+position = Vector2(2.5, 2)
+shape = SubResource("RectangleShape2D_slaac")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1070400777]
 position_smoothing_enabled = true
@@ -30,7 +36,22 @@ position_smoothing_speed = 8.0
 [node name="FeedingArea" type="Area2D" parent="FeedingPivot" unique_id=706250139]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="FeedingPivot/FeedingArea" unique_id=178054459]
-position = Vector2(59, 0)
+position = Vector2(65, 5)
 shape = SubResource("CapsuleShape2D_8bfxb")
 
+[node name="BiteArea" type="Area2D" parent="FeedingPivot" unique_id=328529145]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="FeedingPivot/BiteArea" unique_id=700216827]
+position = Vector2(78, 6)
+shape = SubResource("CapsuleShape2D_exsps")
+
+[node name="SensoryArea" type="Area2D" parent="." unique_id=1864335281]
+collision_mask = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="SensoryArea" unique_id=1416725728]
+scale = Vector2(500, 500)
+shape = SubResource("CircleShape2D_exsps")
+
 [connection signal="area_entered" from="FeedingPivot/FeedingArea" to="." method="_on_feeding_area_area_entered"]
+[connection signal="body_entered" from="SensoryArea" to="." method="_on_sensory_area_body_entered"]
+[connection signal="body_exited" from="SensoryArea" to="." method="_on_sensory_area_body_exited"]
