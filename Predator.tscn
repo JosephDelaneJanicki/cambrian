@@ -11,7 +11,7 @@ height = 50.6
 radius = 65.209274
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_exsps"]
-radius = 11.400437
+radius = 12.703542
 
 [node name="Predator" type="CharacterBody2D" unique_id=307648078 groups=["predator"]]
 collision_layer = 2
@@ -41,7 +41,7 @@ region_rect = Rect2(-0.5526123, -7.362854, 1778.6477, 899.95325)
 [node name="AttackArea" type="Area2D" parent="BodyPivot" unique_id=663611478]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="BodyPivot/AttackArea" unique_id=960192399]
-position = Vector2(161, 33)
+position = Vector2(154.00002, 10.000002)
 scale = Vector2(10, 10)
 shape = SubResource("CircleShape2D_exsps")
 

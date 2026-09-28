@@ -40,6 +40,7 @@ position = Vector2(65, 5)
 shape = SubResource("CapsuleShape2D_8bfxb")
 
 [node name="BiteArea" type="Area2D" parent="FeedingPivot" unique_id=328529145]
+collision_mask = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="FeedingPivot/BiteArea" unique_id=700216827]
 position = Vector2(78, 6)
